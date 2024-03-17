@@ -21,7 +21,7 @@ author: gbeefee
 
 例题：攻防世界pwn-1
 
-![checksec]()
+![checksec](https://github.com/gbeefee/imghome/blob/d06adada018f27833ce7abfd67a222cafc80a53c/checksec.png)
 
 没有pie保护
 
