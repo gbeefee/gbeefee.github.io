@@ -1,11 +1,10 @@
 ---
 layout: post
-title: ""
-date:   2022-11-22
+title: "ret2libc与pwn1"
+date: 2024-3-17
 tags: [pwn]
 comments: true
 author: gbeefee
-	
 ---
 
 ​	ret2libc，终于还是要搞明白了，继续栈的学习理论知识😌，下周就去学堆。
@@ -22,7 +21,7 @@ author: gbeefee
 
 例题：攻防世界pwn-1
 
-![checksec](https://github.com/gbeefee/imghome/blob/4b62d12cff42a86998bbea6d5a36711a8f590d67/checksec.png)
+![checksec]()
 
 没有pie保护
 
