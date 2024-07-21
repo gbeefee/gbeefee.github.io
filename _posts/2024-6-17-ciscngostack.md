@@ -60,10 +60,10 @@ p.interactive()
 
 因为是用go语言编写的，ida几乎是看不到什么东西了，但是go报错会提示错误地址
 
-![]([gbeefee.github.io/images/ciscngo/01.png at main · gbeefee/gbeefee.github.io](https://github.com/gbeefee/gbeefee.github.io/blob/main/images/ciscngo/01.png))
+![](https://github.com/gbeefee/gbeefee.github.io/blob/main/images/ciscngo/01.png)
 
 算一下长度
 
-![]([gbeefee.github.io/images/ciscngo/01.png at main · gbeefee/gbeefee.github.io](https://github.com/gbeefee/gbeefee.github.io/blob/main/images/ciscngo/01.png))
+![](https://github.com/gbeefee/gbeefee.github.io/blob/main/images/ciscngo/01.png)
 
 然后就是获取gadget，ropper查一下，发现特别多，要的都有，就不贴了。
